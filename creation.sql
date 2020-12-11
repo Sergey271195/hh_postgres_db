@@ -26,7 +26,7 @@ CREATE TABLE homework.vacancy (
 CREATE TABLE homework.applicant (
     applicant_id      SERIAL PRIMARY KEY,
     applicant_name    text NOT NULL,
-    area_id           integer REFERENCES homework.area (area_id) ON DELETE SET NULL
+    area_id           integer REFERENCES homework.area (area_id)
 );
 
 CREATE TABLE homework.response (
