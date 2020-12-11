@@ -8,7 +8,8 @@ LEFT JOIN homework.employer AS e ON v.employer_id = e.employer_id
 WHERE 
     v.compensation_from IS NULL 
     AND v.compensation_to IS NULL
-ORDER BY v.created_at DESC LIMIT 10;
+ORDER BY v.created_at DESC 
+LIMIT 10;
 
 
 WITH pretaxed_values AS (
@@ -36,9 +37,9 @@ WITH response_count AS (
     SELECT
         v.employer_id,
         v.position_name,
-        count(resume_id) AS responses
+        count(response_id) AS responses
     FROM homework.vacancy AS v
-    LEFT JOIN homework.vacancy_resume AS vr ON vr.vacancy_id = v.vacancy_id
+    LEFT JOIN homework.vacancy_response AS vr ON vr.vacancy_id = v.vacancy_id
     GROUP BY v.vacancy_id
 )
 SELECT
@@ -47,7 +48,8 @@ SELECT
     rc.responses
 FROM homework.employer AS e 
 LEFT JOIN response_count AS rc ON rc.employer_id = e.employer_id
-ORDER BY responses DESC, employer_name ASC LIMIT 5;
+ORDER BY responses DESC, employer_name ASC 
+LIMIT 5;
 
 WITH vac_number AS (
     SELECT
@@ -62,19 +64,23 @@ SELECT
     percentile_cont(0.5) WITHIN GROUP (ORDER BY vac_count) as median_value
 FROM vac_number;
 
+
 WITH creation_times AS (
     SELECT
-        a.area_name,
+        v.vacancy_id AS vacancy_id,
+        v.employer_id AS employer_id,
         v.created_at AS vacancy_creation,
-        vr.created_at AS first_response
+        min(vr.created_at) AS first_response
     FROM homework.vacancy AS v
-    LEFT JOIN homework.vacancy_resume as vr ON v.vacancy_id = vr.vacancy_id
-    LEFT JOIN homework.employer AS e ON e.employer_id = v.employer_id
-    LEFT JOIN homework.area AS a ON e.area_id = a.area_id
+    LEFT JOIN homework.vacancy_response as vr ON v.vacancy_id = vr.vacancy_id
+    GROUP BY v.vacancy_id
 )
 SELECT
-    area_name,
+    a.area_name AS area_name,
     min(first_response - vacancy_creation) AS min_time,
     max(first_response - vacancy_creation) AS max_time
-FROM creation_times
-GROUP BY area_name ORDER BY area_name;
+FROM creation_times AS ct
+LEFT JOIN homework.employer AS e ON e.employer_id = ct.employer_id
+LEFT JOIN homework.area AS a ON a.area_id = e.area_id
+GROUP BY a.area_name
+ORDER BY a.area_name ASC;
