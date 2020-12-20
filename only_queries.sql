@@ -82,5 +82,5 @@ SELECT
 FROM creation_times AS ct
 LEFT JOIN homework.employer AS e ON e.employer_id = ct.employer_id
 LEFT JOIN homework.area AS a ON a.area_id = e.area_id
-GROUP BY a.area_name
+GROUP BY a.area_id
 ORDER BY a.area_name ASC;
